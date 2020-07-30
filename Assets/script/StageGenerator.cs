@@ -9,7 +9,7 @@ public class StageGenerator : MonoBehaviour {
     public GameObject[] stageChips;
     public int startChipIndex;
     public int preInstantiate;
-    public List<GameObject> generateStageList = new List<GameObject> ();
+    public List<GameObject> generatedStageList = new List<GameObject> ();
 
     // Start is called before the first frame update
     void Start () {
@@ -21,7 +21,38 @@ public class StageGenerator : MonoBehaviour {
     void Update () {
         int charaPositionIndex = (int) (character.position.z / StageChipSize);
         if (charaPositionIndex + preInstantiate > currentChipIndex) {
-            UpdateStage (charaPosition)
+            UpdateStage (charaPositionIndex + preInstantiate);
         }
+    }
+
+    void UpdateStage (int toChipIndex) {
+        if (toChipIndex <= currentChipIndex) {
+            return;
+        }
+        for (int i = currentChipIndex + 1; i <= toChipIndex; i++) {
+            GameObject stageObject = GenerateStage (i);
+            generatedStageList.Add (stageObject);
+        }
+        while (generatedStageList.Count > preInstantiate + 2) {
+            DestroyOldestStage ();
+        }
+        currentChipIndex = toChipIndex;
+
+    }
+
+    GameObject GenerateStage (int chipIndex) {
+        int nextStageChip = Random.Range (0, stageChips.Length);
+        GameObject stageObject = (GameObject) Instantiate (
+            stageChips[nextStageChip],
+            new Vector3 (0, 0, chipIndex * StageChipSize),
+            Quaternion.identity
+        );
+        return stageObject;
+    }
+
+    void DestroyOldestStage () {
+        GameObject oldStage = generatedStageList[0];
+        generatedStageList.RemoveAt (0);
+        Destroy (oldStage);
     }
 }
